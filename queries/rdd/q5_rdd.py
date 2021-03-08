@@ -48,6 +48,9 @@ sc1 = spark1.sparkContext
 spark2 = SparkSession.builder.appName("Q4-RDD-2").getOrCreate()
 sc2 = spark2.sparkContext
 
+spark3 = SparkSession.builder.appName("Q4-RDD-3").getOrCreate()
+sc3 = spark3.sparkContext
+
 genres = sc1.textFile("hdfs://master:9000/movies/movie_genres.csv"). \
     map(map_genres). \
     filter(lambda x: x[1] == 'Action')
@@ -57,19 +60,18 @@ genres = sc1.textFile("hdfs://master:9000/movies/movie_genres.csv"). \
     # map(lambda x: (x[0], x[1][0]/x[1][1]))
     # filter(lambda x: x[1] > 3.0)
 
-# movies = sc.textFile("hdfs://master:9000/movies/movies.csv"). \
-#     map(map_movies). \
-#     join(genres)
-    # map(five_years). \
-    # reduceByKey(lambda x, y: (x[0]+y[0], x[1]+y[1])). \
-    # map(lambda x: (x[0], x[1][0]/x[1][1])). \
-    # sortBy(lambda x: x[0], ascending=True)
-
 ratings = sc2.textFile("hdfs://master:9000/movies/ratings.csv"). \
     map(map_ratings). \
     join(genres)
     # join(movies)
 
+# movies = sc3.textFile("hdfs://master:9000/movies/movies.csv"). \
+#     map(map_movies). \
+#     join(ratings)
+#     # map(five_years). \
+#     # reduceByKey(lambda x, y: (x[0]+y[0], x[1]+y[1])). \
+#     # map(lambda x: (x[0], x[1][0]/x[1][1])). \
+#     # sortBy(lambda x: x[0], ascending=True)
 
 # for i in movies.take(10):
 #     print(i)
@@ -78,7 +80,7 @@ for i in ratings.take(10):
     print(i)
 
 # print(genres.count())
-# print(ratings.count())
+print(ratings.count())
 
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)

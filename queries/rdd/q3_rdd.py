@@ -31,11 +31,6 @@ sc = spark.sparkContext
 
 genres = sc.textFile("hdfs://master:9000/movies/movie_genres.csv"). \
     map(map_genres)
-    # join(ratings). \
-    # map(lambda x: (x[1][1], (x[1][0], 1)))
-    # reduceByKey(lambda x, y: (x[0]+y[0], x[1]+y[1])). \
-    # map(lambda x: (x[0], x[1][0]/x[1][1]))
-    # filter(lambda x: x[1] > 3.0)
 
 
 ratings = sc.textFile("hdfs://master:9000/movies/ratings.csv"). \
