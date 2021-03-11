@@ -72,3 +72,7 @@ for i in ratings.collect():
 
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
+
+f = open("output/rdd/times.txt", "a")
+f.write(str(elapsed_time)+"\n")
+f.close()

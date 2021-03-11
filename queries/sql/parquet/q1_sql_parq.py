@@ -27,7 +27,8 @@ sqlString = \
     "ORDER BY 1 "
 
 res = spark.sql(sqlString)
-res.show()
+# res.show()
+res.coalesce(1).write.csv("output/output_q1.csv")
 
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
