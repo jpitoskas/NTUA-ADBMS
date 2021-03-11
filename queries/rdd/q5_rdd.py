@@ -7,12 +7,11 @@ def split_complex(x):
     return list(csv.reader(StringIO(x), delimiter=','))[0]
 
 
-# def filter2000(x):
-#     movie_info = split_complex(x)
-#     desc = movie_info[2]
-#     date = movie_info[3]
-
-#     return (desc and date and dt.datetime.strptime(date.split("T")[0], "%Y-%m-%d").year >= 2000)
+def minMax(a,b):
+    if a[1] != b[1]:
+        return min(a,b, key=lambda item:item[1])
+    else:
+        return max(a,b, key=lambda item:item[2])
 
 def map_movies(x):
     movie_info = split_complex(x)
@@ -38,49 +37,38 @@ def map_ratings(x):
     movie_id = int(user_info[1])
     rating = float(user_info[2])
 
-    return (movie_id, (user_id, rating, 1))
+    return (movie_id, (user_id, rating))
 
 start_time = time.time()
 
-spark1 = SparkSession.builder.appName("Q4-RDD-1").getOrCreate()
+spark1 = SparkSession.builder.appName("Q5-RDD-1").getOrCreate()
 sc1 = spark1.sparkContext
-
-spark2 = SparkSession.builder.appName("Q4-RDD-2").getOrCreate()
-sc2 = spark2.sparkContext
-
-spark3 = SparkSession.builder.appName("Q4-RDD-3").getOrCreate()
-sc3 = spark3.sparkContext
 
 genres = sc1.textFile("hdfs://master:9000/movies/movie_genres.csv"). \
     map(map_genres). \
-    filter(lambda x: x[1] == 'Action')
-    # join(ratings). \
-    # map(lambda x: (x[1][1], (x[1][0], 1)))
-    # reduceByKey(lambda x, y: (x[0]+y[0], x[1]+y[1])). \
-    # map(lambda x: (x[0], x[1][0]/x[1][1]))
-    # filter(lambda x: x[1] > 3.0)
+    cache()
+    # filter(lambda x: x[1] == 'Action'). \
 
-ratings = sc2.textFile("hdfs://master:9000/movies/ratings.csv"). \
+movies = sc1.textFile("hdfs://master:9000/movies/movies.csv"). \
+    map(map_movies). \
+    join(genres). \
+    cache()
+
+ratings = sc1.textFile("hdfs://master:9000/movies/ratings.csv"). \
     map(map_ratings). \
-    join(genres)
-    # join(movies)
+    join(movies). \
+    map(lambda x: ( (x[1][1][1], x[1][0][0]), ((x[1][1][0][0], x[1][0][1], x[1][1][0][1]), (x[1][1][0][0], x[1][0][1], x[1][1][0][1]), 1))). \
+    reduceByKey(lambda x, y: ((max(x[0], y[0], key=lambda item:(item[1], item[2]))), (minMax(x[1], y[1])), x[2]+y[2])). \
+    map(lambda x: ( x[0][0], (x[0][1], x[1]))) . \
+    reduceByKey(lambda x, y: max(x, y, key=lambda item:item[1][2])). \
+    map(lambda x: ( x[0], x[1][0], x[1][1][2], x[1][1][0][0], x[1][1][0][1], x[1][1][1][0], x[1][1][1][1])). \
+    sortBy(lambda x: x[0], ascending=True). \
+    cache()
 
-# movies = sc3.textFile("hdfs://master:9000/movies/movies.csv"). \
-#     map(map_movies). \
-#     join(ratings)
-#     # map(five_years). \
-#     # reduceByKey(lambda x, y: (x[0]+y[0], x[1]+y[1])). \
-#     # map(lambda x: (x[0], x[1][0]/x[1][1])). \
-#     # sortBy(lambda x: x[0], ascending=True)
-
-# for i in movies.take(10):
-#     print(i)
-
-for i in ratings.take(10):
+for i in ratings.collect():
     print(i)
 
-# print(genres.count())
-print(ratings.count())
+# print(ratings.count())
 
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)

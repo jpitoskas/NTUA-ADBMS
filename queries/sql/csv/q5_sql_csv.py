@@ -3,13 +3,21 @@ import time
 
 start_time = time.time()
 
-spark = SparkSession.builder.appName("Q5-SQL").getOrCreate()
+spark = SparkSession.builder.appName("Q5-SQL-1").getOrCreate()
+# spark2 = SparkSession.builder.appName("Q5-SQL-2").getOrCreate()
+# spark3 = SparkSession.builder.appName("Q5-SQL-3").getOrCreate()
 
-genres = spark.read.parquet("hdfs://master:9000/movies/movie_genres.parquet")
+genres = spark.read.format('csv'). \
+    options(header='false', inferSchema='true'). \
+    load("hdfs://master:9000/movies/movie_genres.csv")
 
-movies = spark.read.parquet("hdfs://master:9000/movies/movies.parquet")
+movies = spark.read.format('csv'). \
+    options(header='false', inferSchema='true'). \
+    load("hdfs://master:9000/movies/movies.csv")
 
-ratings = spark.read.parquet("hdfs://master:9000/movies/ratings.parquet")
+ratings = spark.read.format('csv'). \
+    options(header='false', inferSchema='true'). \
+    load("hdfs://master:9000/movies/ratings.csv")
 
 genres.registerTempTable("genres")
 movies.registerTempTable("movies")
@@ -55,7 +63,7 @@ sqlString_max_count_all_ratings = \
     "INNER JOIN ratingsAndGenres AS rg " + \
     "ON mrc.MaxUserID = rg.UserID AND mrc.MaxGenre = rg.Genre "
 
-maxCountAllRatings = spark.sql(sqlString_max_count_all_ratings).cache()
+maxCountAllRatings = spark.sql(sqlString_max_count_all_ratings)
 maxCountAllRatings.createOrReplaceTempView("maxCountAllRatings")
 # maxCountAllRatings.show()
 # print(maxCountAllRatings.count())
