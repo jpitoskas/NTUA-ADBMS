@@ -27,8 +27,12 @@ sqlString = \
     "ORDER BY 1 "
 
 res = spark.sql(sqlString)
-# res.show()
-res.coalesce(1).write.csv("output/output_q1.csv")
+res.show()
+res.coalesce(1).write.csv("hdfs://master:9000/output/q1.csv")
 
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
+
+f = open("output/sql/parquet/times.txt", "a")
+f.write("Q1:"+str(elapsed_time)+"\n")
+f.close()
