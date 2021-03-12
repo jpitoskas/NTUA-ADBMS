@@ -65,8 +65,11 @@ ratings = sc1.textFile("hdfs://master:9000/movies/ratings.csv"). \
     sortBy(lambda x: x[0], ascending=True). \
     cache()
 
+f = open("output/rdd/q5.txt", "a")
 for i in ratings.collect():
     print(i)
+    f.write(str(i)+"\n")
+f.close()
 
 # print(ratings.count())
 
@@ -74,5 +77,5 @@ elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
 
 f = open("output/rdd/times.txt", "a")
-f.write(str(elapsed_time)+"\n")
+f.write("Q5:"+str(elapsed_time)+"\n")
 f.close()

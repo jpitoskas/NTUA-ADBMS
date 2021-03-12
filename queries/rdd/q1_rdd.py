@@ -47,12 +47,15 @@ top_revenue_movies = sc.textFile("hdfs://master:9000/movies/movies.csv"). \
     # reduceByKey(lambda x, y : x + y). \
     # sortBy(lambda x: x[1], ascending=False)
 
+f = open("output/rdd/q1.txt", "a")
 for i in top_revenue_movies.collect():
     print(i)
+    f.write(str(i)+"\n")
+f.close()
 
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
 
 f = open("output/rdd/times.txt", "a")
-f.write(str(elapsed_time)+"\n")
+f.write("Q1:"+str(elapsed_time)+"\n")
 f.close()

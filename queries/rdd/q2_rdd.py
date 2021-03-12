@@ -23,7 +23,8 @@ sc = spark.sparkContext
 mean_user_ratings = sc.textFile("hdfs://master:9000/movies/ratings.csv"). \
     map(mapping). \
     reduceByKey(lambda x, y: (x[0]+y[0], x[1]+y[1])). \
-    map(lambda x: (x[0], x[1][0]/x[1][1]))
+    map(lambda x: (x[0], x[1][0]/x[1][1])). \
+    cache()
     # filter(lambda x: x[1] > 3.0)
 
 cnt = 0
@@ -34,9 +35,13 @@ for i in mean_user_ratings.collect():
 res = 100*(cnt/len(mean_user_ratings.collect()))
 print("{:.2f} %".format(round(res, 2)))
 
+f = open("output/rdd/q2.txt", "a")
+f.write(str(res)+"\n")
+f.close()
+
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
 
 f = open("output/rdd/times.txt", "a")
-f.write(str(elapsed_time)+"\n")
+f.write("Q2:"+str(elapsed_time)+"\n")
 f.close()

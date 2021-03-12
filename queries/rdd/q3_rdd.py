@@ -30,7 +30,8 @@ sc = spark.sparkContext
 
 
 genres = sc.textFile("hdfs://master:9000/movies/movie_genres.csv"). \
-    map(map_genres)
+    map(map_genres). \
+    cache()
 
 
 ratings = sc.textFile("hdfs://master:9000/movies/ratings.csv"). \
@@ -42,8 +43,11 @@ ratings = sc.textFile("hdfs://master:9000/movies/ratings.csv"). \
     reduceByKey(lambda x, y: (x[0]+y[0], x[1]+y[1])). \
     map(lambda x: (x[0], x[1][0]/x[1][1], x[1][1]))
 
+f = open("output/rdd/q3.txt", "a")
 for i in ratings.collect():
     print(i)
+    f.write(str(i)+"\n")
+f.close()
 
 # print(genres.count())
 # print(ratings.count())
@@ -52,5 +56,5 @@ elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
 
 f = open("output/rdd/times.txt", "a")
-f.write(str(elapsed_time)+"\n")
+f.write("Q3:"+str(elapsed_time)+"\n")
 f.close()
