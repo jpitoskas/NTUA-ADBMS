@@ -1,50 +1,39 @@
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-from collections import defaultdict
+from pyspark.sql import SparkSession
+import sys, time
 
-def autolabel(rects):
-    """Attach a text label above each bar in *rects*, displaying its height."""
-    for rect in rects:
-        height = rect.get_height()
-        ax.annotate('{0:.2f}'.format(height),
-                    xy=(rect.get_x() + rect.get_width() / 2, height),
-                    xytext=(0, 2),  # 2 points vertical offset
-                    textcoords="offset points",
-                    ha='center', va='bottom')
+disabled = sys.argv[1]
+spark = SparkSession.builder.appName('query1-sql').getOrCreate()
 
-times = defaultdict(list)
+if disabled == "Y":
+    spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
+elif disabled == 'N':
+    pass
+else:
+    raise Exception ("This setting is not available.")
 
-f = open("output/optimizer_times.txt", "r")
-for line in f.readlines():
-    info = line.rstrip().split(":")
-    if info[0] == 'Y':
-        label = "Disabled"
-    else:
-        label = "Enabled"
-    time = float(info[1])
-    times[label].append(time)
-f.close()
+df = spark.read.format("parquet")
+df1 = df.load("hdfs://master:9000/movies/ratings.parquet")
+df2 = df.load("hdfs://master:9000/movies/movie_genres.parquet")
 
+df1.registerTempTable("ratings")
+df2.registerTempTable("movie_genres")
 
-labels = list(times.keys())
-xtimes = [item for sublist in times.values() for item in sublist]
+sqlString = \
+    "SELECT * " + \
+    "FROM " + \
+    " (SELECT * FROM movie_genres LIMIT 100) as g, " + \
+    " ratings as r " + \
+    "WHERE " + \
+    " r._c1 = g._c0"
 
-x = np.arange(len(labels))
+t1 = time.time()
+spark.sql(sqlString).show()
+t2 = time.time()
 
-fig, ax = plt.subplots()
-bars = ax.bar(x, xtimes, width=0.35, label='Execution Times')
+spark.sql(sqlString).explain()
 
-ax.set_title('Execution times with query optimizer enabled and disabled')
-ax.set_ylabel('Time (sec)')
-ax.set_xticks(x)
-ax.set_xticklabels(labels)
-ax.grid(b = True, color ='grey', linestyle ='-.', linewidth = 0.5, alpha = 0.2)
-# for s in ['top', 'bottom', 'left', 'right']:
-for s in ['top', 'right']:
-    ax.spines[s].set_visible(False)
+print("Time with choosing join type %s is %.4f sec."%("enabled" if disabled == 'N' else "disabled", t2-t1))
 
-autolabel(bars)
-
-fig.tight_layout()
-plt.show()
+# f = open("output/optimizer_times.txt", "a")
+# f.write(disabled+":"+str(t2-t1)+"\n")
+# f.close()
