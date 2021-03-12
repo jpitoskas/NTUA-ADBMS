@@ -35,5 +35,5 @@ spark.sql(sqlString).explain()
 print("Time with choosing join type %s is %.4f sec."%("enabled" if disabled == 'N' else "disabled", t2-t1))
 
 f = open("output/optimizer_times.txt", "a")
-f.write(str(t2-t1)+"\n")
+f.write(disabled+":"+str(t2-t1)+"\n")
 f.close()
