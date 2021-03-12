@@ -138,6 +138,11 @@ sqlString = \
 
 res = spark.sql(sqlString)
 res.show()
+res.coalesce(1).write.csv("hdfs://master:9000/output/q5.csv")
 
 elapsed_time = (time.time() - start_time)
 print("\n--- %s seconds ---\n" % elapsed_time)
+
+f = open("output/sql/csv/times.txt", "a")
+f.write("Q5:"+str(elapsed_time)+"\n")
+f.close()
