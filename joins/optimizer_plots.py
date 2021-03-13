@@ -53,4 +53,4 @@ autolabel(ax.patches)
 fig.tight_layout()
 plt.show()
 
-# fig.savefig("queries_plots.png")
+# fig.savefig("optimizer_plots.png")
