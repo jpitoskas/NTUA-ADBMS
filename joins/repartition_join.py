@@ -33,7 +33,7 @@ def map_join(buffers):
     if (len(ratings) != 0 and len(genres) != 0):
         for rating in ratings:
             for genre in genres:
-                res.append((movie_id, rating, genre))
+                res.append((movie_id, (rating, genre)))
         return res
     else:
         return []
